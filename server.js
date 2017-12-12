@@ -31,6 +31,7 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 // function loadDB() {
 //   client.query(`
+
 //   CREATE TABLE IF NOT EXISTS books(
 //     book_id SERIAL PRIMARY KEY,
 //     author VARCHAR(255) NOT NULL,
@@ -54,11 +55,42 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //               books(title, author, isbn, image_url, description)
 //               VALUES ($1, $2, $3, $4, $5)
 //               ON CONFLICT (isbn) DO NOTHING;
+
+//   CREATE TABLE books (
+//     book_id serial primary key,
+//     author varchar(255) not null,
+//     title varchar(255) not null,
+//     isbn varchar(30),
+//     image_url varchar(255),
+//     description TEXT NOT NULL);
+//     `)
+// }
+//
+// function loadBooks () {
+//   client.query('SELECT COUNT (*) FROM books')
+//     .then(result => {
+//       if(!parseInt(result.rows[0].count)) {
+//         fs.readFile('./book-list-client/data/books.json', 'utf8', (err, fd) => {
+//           JSON.parse(fd).forEach(ele => {
+//             client.query(`
+//               INSERT INTO
+//               books(title, author, isbn, image_url, description)
+//               SELECT book_id, &1, $2, $3, $4, $5;
+
 //               `,
 //                 [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
 //             )
 //             .catch(console.error);
 //           })
+
 //         });
 //       }
 // loadDB();
+
+//         }
+//       )
+//     }
+//   })
+// }
+// loadBooks();
+
