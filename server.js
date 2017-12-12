@@ -29,24 +29,24 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //CLIENT_URL=http://localhost:8080
 //DATABASE_URL=postgres://localhost:5432/books_app
 
-// function loadDB() {
-//   client.query(`
+function loadDB() {
+  client.query(`
 
-//   CREATE TABLE IF NOT EXISTS books(
-//     book_id SERIAL PRIMARY KEY,
-//     author VARCHAR(255) NOT NULL,
-//     title VARCHAR(255) NOT NULL,
-//     isbn VARCHAR(30),
-//     image_url VARCHAR(255),
-//     description TEXT NOT NULL);
-//     `)
-//     .then(loadBooks)
-//     .catch(console.error);
-// }
+  CREATE TABLE IF NOT EXISTS books(
+    book_id SERIAL PRIMARY KEY,
+    author VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    isbn VARCHAR(30),
+    image_url VARCHAR(255),
+    description TEXT NOT NULL);
+    `)
+    .then(loadBooks)
+    .catch(console.error);
+}
+
 //
-// //
-// //
-// //
+//
+//
 // function loadBooks () {
 //         fs.readFile('./book-list-client/data/books.json', (err, fd) => {
 //           JSON.parse(fd.toString()).forEach(ele => {
@@ -56,36 +56,28 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //               VALUES ($1, $2, $3, $4, $5)
 //               ON CONFLICT (isbn) DO NOTHING;
 
-//   CREATE TABLE books (
-//     book_id serial primary key,
-//     author varchar(255) not null,
-//     title varchar(255) not null,
-//     isbn varchar(30),
-//     image_url varchar(255),
-//     description TEXT NOT NULL);
-//     `)
-// }
-//
-// function loadBooks () {
-//   client.query('SELECT COUNT (*) FROM books')
-//     .then(result => {
-//       if(!parseInt(result.rows[0].count)) {
-//         fs.readFile('./book-list-client/data/books.json', 'utf8', (err, fd) => {
-//           JSON.parse(fd).forEach(ele => {
-//             client.query(`
-//               INSERT INTO
-//               books(title, author, isbn, image_url, description)
-//               SELECT book_id, &1, $2, $3, $4, $5;
+function loadBooks () {
+  client.query('SELECT COUNT (*) FROM books')
+    .then(result => {
+      if(!parseInt(result.rows[0].count)) {
+        fs.readFile('./book-list-client/data/books.json', 'utf8', (err, fd) => {
+          JSON.parse(fd).forEach(ele => {
+            client.query(`
+              INSERT INTO
+              books(title, author, isbn, image_url, description)
+              VALUES (&1, $2, $3, $4, $5);
 
-//               `,
-//                 [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
-//             )
-//             .catch(console.error);
-//           })
+              `,
+                [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
+            ))))
+            .catch(console.error);
+          })
 
-//         });
-//       }
-// loadDB();
+        });
+      })
+    })
+  }
+
 
 //         }
 //       )
@@ -93,4 +85,3 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //   })
 // }
 // loadBooks();
-
