@@ -3,9 +3,10 @@
 const express = require('express');
 const cors = require('cors');
 const pg = require('pg');
+const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 const CLIENT_URL = process.env.CLIENT_URL;
 
 const client = new pg.Client(process.env.DATABASE_URL);
@@ -16,6 +17,12 @@ app.use(cors());
 
 app.get('/', (req, res) => res.send('Hello world!'));
 
+app.get('/api/v1/books', (request, response) => {
+  client.query(`SELECT book_id, title, author, image_url FROM books;`)
+    .then(result => response.send(result.rows))
+    .catch(console.error);
+})
+
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //PORT=3000
@@ -24,36 +31,34 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 // function loadDB() {
 //   client.query(`
-//   CREATE TABLE books (
-//     book_id serial primary key,
-//     author varchar(255) not null,
-//     title varchar(255) not null,
-//     isbn varchar(30),
-//     image_url varchar(255),
+//   CREATE TABLE IF NOT EXISTS books(
+//     book_id SERIAL PRIMARY KEY,
+//     author VARCHAR(255) NOT NULL,
+//     title VARCHAR(255) NOT NULL,
+//     isbn VARCHAR(30),
+//     image_url VARCHAR(255),
 //     description TEXT NOT NULL);
 //     `)
+//     .then(loadBooks)
+//     .catch(console.error);
 // }
 //
-//
-//
+// //
+// //
+// //
 // function loadBooks () {
-//   client.query('SELECT COUNT (*) FROM books')
-//     .then(result => {
-//       if(!parseInt(result.rows[0].count)) {
-//         fs.readFile('./book-list-client/data/books.json', 'utf8', (err, fd) => {
-//           JSON.parse(fd).forEach(ele => {
+//         fs.readFile('./book-list-client/data/books.json', (err, fd) => {
+//           JSON.parse(fd.toString()).forEach(ele => {
 //             client.query(`
 //               INSERT INTO
 //               books(title, author, isbn, image_url, description)
-//               SELECT book_id, &1, $2, $3, $4, $5;
+//               VALUES ($1, $2, $3, $4, $5)
+//               ON CONFLICT (isbn) DO NOTHING;
 //               `,
 //                 [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
 //             )
 //             .catch(console.error);
 //           })
-//         }
-//       )
-//     }
-//   })
-// }
-// loadBooks();
+//         });
+//       }
+// loadDB();
