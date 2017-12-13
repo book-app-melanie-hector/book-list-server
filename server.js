@@ -18,10 +18,12 @@ app.use(cors());
 app.get('/', (req, res) => res.send('Hello world!'));
 
 app.get('/api/v1/books', (request, response) => {
-  client.query(`SELECT book_id, title, author, image_url FROM books;`)
+  client.query(`SELECT book_id, title, author, image_url, isbn FROM books;`)
     .then(result => response.send(result.rows))
     .catch(console.error);
 })
+
+app.get('*', (req,res) => res.redirect(CLIENT_URL));
 
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
@@ -40,7 +42,7 @@ function loadDB() {
     image_url VARCHAR(255),
     description TEXT NOT NULL);
     `)
-    .then(loadBooks)
+    .then(loadBooks())
     .catch(console.error);
 }
 
@@ -55,33 +57,30 @@ function loadDB() {
 //               books(title, author, isbn, image_url, description)
 //               VALUES ($1, $2, $3, $4, $5)
 //               ON CONFLICT (isbn) DO NOTHING;
-
-function loadBooks () {
-  client.query('SELECT COUNT (*) FROM books')
-    .then(result => {
-      if(!parseInt(result.rows[0].count)) {
-        fs.readFile('./book-list-client/data/books.json', 'utf8', (err, fd) => {
-          JSON.parse(fd).forEach(ele => {
-            client.query(`
-              INSERT INTO
-              books(title, author, isbn, image_url, description)
-              VALUES (&1, $2, $3, $4, $5);
-
-              `,
-                [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
-            ))))
-            .catch(console.error);
-          })
-
-        });
-      })
-    })
-  }
-
-
 //         }
 //       )
 //     }
 //   })
 // }
-// loadBooks();
+
+
+
+function loadBooks () {
+  client.query('SELECT COUNT (*) FROM books')
+    .then(result => {
+      if(!parseInt(result.rows[0].count)) {
+        fs.readFile('./book-list-client/data/books.json', 'utf-8', (err, fd) => {
+          JSON.parse(fd).forEach(ele => {
+            client.query(`
+              INSERT INTO
+              books(title, author, isbn, image_url, description)
+              VALUES (&1, $2, $3, $4, $5)
+              ON CONFLICT (isbn) DO NOTHING;`,
+                [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
+            )
+            .catch(console.error);
+          })
+        });
+      })
+    }
+  }
