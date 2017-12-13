@@ -66,21 +66,20 @@ function loadDB() {
 
 
 function loadBooks () {
-  client.query('SELECT COUNT (*) FROM books')
+  client.query('SELECT COUNT(*) FROM books')
     .then(result => {
-      if(!parseInt(result.rows[0].count)) {
+      if(!parseInt(result.rows[0].count))
         fs.readFile('./book-list-client/data/books.json', 'utf-8', (err, fd) => {
           JSON.parse(fd).forEach(ele => {
             client.query(`
               INSERT INTO
-              books(title, author, isbn, image_url, description)
-              VALUES (&1, $2, $3, $4, $5)
+              books (title, author, isbn, image_url, description)
+              VALUES ($1, $2, $3, $4, $5)
               ON CONFLICT (isbn) DO NOTHING;`,
                 [ele.title, ele.author, ele.isbn, ele.image_url, ele.description]
             )
-            .catch(console.error);
+            // .catch(console.error);
           })
-        });
+        })
       })
-    }
   }
