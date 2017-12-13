@@ -23,6 +23,14 @@ app.get('/api/v1/books', (request, response) => {
     .catch(console.error);
 })
 
+app.get('/api/v1/books/:id', (req, res) => {
+  client.query(`SELECT book_id, title, author, image_url, isbn FROM books
+    WHERE book_id=$1;`,
+      [req.params.id])
+      .then(result => res.send(result.rows))
+      .catch(console.error);
+})
+
 
 
 //PORT=3000
