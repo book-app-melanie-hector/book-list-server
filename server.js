@@ -33,13 +33,24 @@ app.get('/api/v1/books/:id', (req, res) => {
       .catch(console.error);
 })
 
-app.post('/api/v1/books', (req, res) => {
-  client.query(`INSERT INTO books(title, author, image_url, isbn, description)
-    VALUES($1, $2, $3, $3, $4, $5);`,
-      [req.body.title, req.body.author, req.body.image_url, req.body.isbn, req.body.description])
-      .then(result => res.send('book added to database'))
-      .catch(console.error);
-})
+app.post('/api/v1/books', (request, response) => {
+  client.query(
+    'INSERT INTO books (title, author, isbn, image_url, description) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
+    [request.body.title, request.body.author, request.body.isbn, request.body.image_url, request.body.description],
+    function(err) {
+      if (err) console.error(err)
+      response.send('insert complete');
+    }
+  )
+});
+
+// app.post('/api/v1/books', (req, res) => {
+//   client.query(`INSERT INTO books(title, author, image_url, isbn, description)
+//     VALUES($1, $2, $3, $3, $4, $5);`,
+//       [req.body.title, req.body.author, req.body.image_url, req.body.isbn, req.body.description])
+//       .then(result => res.send('book added to database'))
+//       .catch(console.error);
+// })
 
 
 
