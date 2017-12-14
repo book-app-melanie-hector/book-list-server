@@ -19,24 +19,27 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => res.send('Hello world!'));
 
+// This gets all boks for home page
 app.get('/api/v1/books', (request, response) => {
   client.query(`SELECT book_id, title, author, image_url, isbn FROM books;`)
     .then(result => response.send(result.rows))
     .catch(console.error);
-})
+});
 
+// This gets a specific book for detail view
 app.get('/api/v1/books/:id', (req, res) => {
   client.query(`SELECT book_id, title, author, image_url, isbn, description FROM books
     WHERE book_id=$1;`,
       [req.params.id])
       .then(result => res.send(result.rows))
       .catch(console.error);
-})
+});
 
+ // This inserts new books into database
 app.post('/api/v1/books', (request, response) => {
   client.query(
     'INSERT INTO books (title, author, isbn, image_url, description) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
-    [request.body.title, request.body.author, request.body.isbn, request.body.image_url, request.body.description],
+      [request.body.title, request.body.author, request.body.isbn, request.body.image_url, request.body.description],
     function(err) {
       if (err) console.error(err)
       response.send('insert complete');
@@ -44,20 +47,27 @@ app.post('/api/v1/books', (request, response) => {
   )
 });
 
-// app.post('/api/v1/books', (req, res) => {
-//   client.query(`INSERT INTO books(title, author, image_url, isbn, description)
-//     VALUES($1, $2, $3, $3, $4, $5);`,
-//       [req.body.title, req.body.author, req.body.image_url, req.body.isbn, req.body.description])
-//       .then(result => res.send('book added to database'))
-//       .catch(console.error);
-// })
+// This deletes a specific book in database
+app.delete('/api/v1/books/:id', (request, response) => {
+  client.query(`DELETE FROM books WHERE book_id=$1;`,
+    [request.params.id]
+  )
+  .then(() => response.send(204))
+  .catch(console.error);
+});
+
+// This updates a book in the database
+app.put('/books/:id', (request, response) => {
+  client.query(`UPDATE books SET title=$1, author=$2, image_url=$3, isbn=$4, description=$5 WHERE book_id=$6;`
+    [request.body.title, request.body.author, request.body.image_url, request.body.isbn, request.body.description, request.params.id]
+  )
+    .then(() => response.send(200))
+    .catch(console.error);
+});
 
 
 
-//PORT=3000
-//CLIENT_URL=http://localhost:8080
-//DATABASE_URL=postgres://localhost:5432/books_app
-
+////////////// DATABASE LOAD FUNCTIONS /////////////////////
 
 function loadBooks () {
   client.query('SELECT COUNT(*) FROM books')
