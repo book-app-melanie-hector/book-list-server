@@ -33,10 +33,11 @@ app.get('/api/v1/books/:id', (req, res) => {
       .catch(console.error);
 })
 
-app.post('/api/v1/books', bodyParser, (req, res) => {
+app.post('/api/v1/books', (req, res) => {
   client.query(`INSERT INTO books(title, author, image_url, isbn, description)
     VALUES($1, $2, $3, $3, $4, $5);`,
       [req.body.title, req.body.author, req.body.image_url, req.body.isbn, req.body.description])
+      .then(result => res.send('book added to database'))
       .catch(console.error);
 })
 
