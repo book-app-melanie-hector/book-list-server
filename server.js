@@ -1,23 +1,36 @@
 'use strict';
 
+// Application Dependencies ///////
 const express = require('express');
 const cors = require('cors');
 const pg = require('pg');
 const fs = require('fs');
 const bodyParser = require('body-parser');
+
+// Application Setup ///////
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CLIENT_URL = process.env.CLIENT_URL;
-
 const client = new pg.Client(process.env.DATABASE_URL);
+const TOKEN = process.env.TOKEN;
+
+// Database Setup /////////
 client.connect();
 client.on('error', err => console.error(err));
 
+// Application Middleware /////////
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Test for server side
 app.get('/', (req, res) => res.send('Hello world!'));
+
+// API Endpoints
+
+app.get('/api/v1/admin', (request, response) => {
+  response.send(TOKEN === parseInt(request.query.token));
+})
 
 // This gets all boks for home page
 app.get('/api/v1/books', (request, response) => {
@@ -52,16 +65,16 @@ app.delete('/api/v1/books/:id', (request, response) => {
   client.query(`DELETE FROM books WHERE book_id=$1;`,
     [request.params.id]
   )
-  .then(() => response.send(204))
+  .then(() => response.sendStatus(204))
   .catch(console.error);
 });
 
 // This updates a book in the database
-app.put('/books/:id', (request, response) => {
+app.put('/api/books/:id', (request, response) => {
   client.query(`UPDATE books SET title=$1, author=$2, image_url=$3, isbn=$4, description=$5 WHERE book_id=$6;`
     [request.body.title, request.body.author, request.body.image_url, request.body.isbn, request.body.description, request.params.id]
   )
-    .then(() => response.send(200))
+    .then(() => response.sendStatus(200))
     .catch(console.error);
 });
 
