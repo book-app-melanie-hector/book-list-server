@@ -5,7 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const pg = require('pg');
 const fs = require('fs');
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
 
 // Application Setup ///////
 const app = express();
@@ -70,9 +70,12 @@ app.delete('/api/v1/books/:id', (request, response) => {
 });
 
 // This updates a book in the database
-app.put('/api/books/:id', (request, response) => {
-  client.query(`UPDATE books SET title=$1, author=$2, image_url=$3, isbn=$4, description=$5 WHERE book_id=$6;`
-    [request.body.title, request.body.author, request.body.image_url, request.body.isbn, request.body.description, request.params.id]
+app.put('/api/v1/books', (request, response) => {
+  console.log('here in query')
+  console.log(request.body);
+
+  client.query(`UPDATE books SET title=$1, author=$2, image_url=$3, isbn=$4, description=$5 WHERE book_id=$6;`,
+    [request.body.title, request.body.author, request.body.image_url, request.body.isbn, request.body.description, request.body.book_id]
   )
     .then(() => response.sendStatus(200))
     .catch(console.error);
