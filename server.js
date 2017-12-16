@@ -6,6 +6,7 @@ const cors = require('cors');
 const pg = require('pg');
 const fs = require('fs');
 const bodyParser = require('body-parser')
+const superagent = require('superagent');
 
 // Application Setup ///////
 const app = express();
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 const CLIENT_URL = process.env.CLIENT_URL;
 const client = new pg.Client(process.env.DATABASE_URL);
 const TOKEN = process.env.TOKEN;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 // Database Setup /////////
 client.connect();
@@ -38,6 +40,35 @@ app.get('/api/v1/books', (request, response) => {
     .then(result => response.send(result.rows))
     .catch(console.error);
 });
+
+// Superagent request to Google Books API
+app.get('/api/v1/books/find', (req, res) => {
+  let url = 'https://www.googleapis.com/books/v1/volumes';
+  let query = ''
+  if(req.query.title) query += `+intitle:${req.query.title}`;
+  if(req.query.author) query += `+inauthor:${req.query.author}`;
+  if(req.query.isbn) query += `+isbn:${req.query.isbn}`;
+
+  superagent.get(url)
+    .query({'q': query})
+    .query({'key': GOOGLE_API_KEY})
+    .then(response => response.body.items.map((book, idx) => {
+      let { title, authors, industryIdentifiers, imageLinks, description } = book.volumeInfo;
+      let placeholderImage = 'http://www.newyorkpaddy.com/images/covers/NoCoverAvailable.jpg';
+
+      return {
+        title: title ? title : 'No title available',
+        author: authors ? authors[0] : 'No authors available',
+        isbn: industryIdentifiers ? `ISBN_13 ${industryIdentifiers[0].identifier}` : 'No ISBN available',
+        image_url: imageLinks ? imageLinks.smallThumbnail : placeholderImage,
+        description: description ? description : 'No description available',
+        book_id: industryIdentifiers ? `${industryIdentifiers[0].identifier}` : '',
+      }
+    }))
+    .then(arr => res.send(arr))
+    .catch(console.error)
+})
+
 
 // This gets a specific book for detail view
 app.get('/api/v1/books/:id', (req, res) => {
@@ -82,7 +113,6 @@ app.put('/api/v1/books', (request, response) => {
 });
 
 
-
 ////////////// DATABASE LOAD FUNCTIONS /////////////////////
 
 function loadBooks () {
@@ -124,3 +154,6 @@ function loadBooks () {
   app.get('*', (req,res) => res.redirect(CLIENT_URL));
 
   app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
+
+
+//AIzaSyBh3CRyJhRAU00mgJwr5TyFQCZ9brHH79c
