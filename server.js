@@ -44,8 +44,13 @@ app.get('/api/v1/books', (request, response) => {
 // Superagent request to Google Books API
 app.get('/api/v1/books/find', (req, res) => {
   let url = 'https://www.googleapis.com/books/v1/volumes';
+  let query = ''
+  if(req.query.title) query += `+intitle:${req.query.title}`;
+  if(req.query.author) query += `+inauthor:${req.query.author}`;
+  if(req.query.isbn) query += `+isbn:${req.query.isbn}`;
+
   superagent.get(url)
-    .query({'q': `+isbn:${req.params.isbn}`})
+    .query({'q': query})
     .query({'key': GOOGLE_API_KEY})
     .then(response => response.body.items.map((book, idx) => {
       let { title, authors, industryIdentifiers, imageLinks, description } = book.volumeInfo;
@@ -57,11 +62,13 @@ app.get('/api/v1/books/find', (req, res) => {
         isbn: industryIdentifiers ? `ISBN_13 ${industryIdentifiers[0].identifier}` : 'No ISBN available',
         image_url: imageLinks ? imageLinks.smallThumbnail : placeholderImage,
         description: description ? description : 'No description available',
+        book_id: industryIdentifiers ? `${industryIdentifiers[0].identifier}` : '',
       }
     }))
-    .then(book => res.send(book[0]))
+    .then(arr => res.send(arr))
     .catch(console.error)
 })
+
 
 // This gets a specific book for detail view
 app.get('/api/v1/books/:id', (req, res) => {
